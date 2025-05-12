@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Maze - Soru Oluştur</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #4b0082;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 240px;
+        }
+        .radio-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+        .radio-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            color: black;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s ease;
+            background-color: #e0e0e0;
+        }
+        .radio-button:hover {
+            transform: scale(1.05);
+        }
+        #genel {
+            background-color: #fbb27a;
+        }
+        #problem {
+            background-color: #7ea6f9;
+        }
+        .buttons-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        #create-btn {
+            padding: 10px 20px;
+            background-color: #3a006b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+        #create-btn:hover {
+            background-color: #29004f;
+        }
+        #bg-btn {
+            padding: 6px 10px;
+            background-color: #3a006b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 10px;
+            margin-top: 2px;
+            position: absolute;
+            left: 30px;
+            top: 115px;
+        }
+        .soru-box {
+            background: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        #soru-container {
+            display: none;
+            margin-top: 20px;
+        }
+        input[type="radio"] {
+            display: none;
+        }
+        input[type="radio"]:checked + label {
+            box-shadow: 0 0 0 2px #000 inset;
+        }
+        .zorluk {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .zorluk.kolay { color: green; }
+        .zorluk.orta { color: orange; }
+        .zorluk.zor { color: red; }
+        .odul, .ceza {
+            margin-top: 4px;
+        }
+
+        /* Yeni renk paneli stilleri */
+        #bg-panel {
+            display: none;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        .color-btn {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .color-btn:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+<h1>Soru Oluştur</h1>
+<div class="container">
+    <div class="radio-group">
+        <input type="radio" name="tur" id="r-genel" value="genel">
+        <label for="r-genel" class="radio-button" id="genel">Genel Kültür Sorusu</label>
+
+        <input type="radio" name="tur" id="r-problem" value="problem">
+        <label for="r-problem" class="radio-button" id="problem">Problem Sorusu</label>
+    </div>
+
+    <div class="buttons-section">
+        <button id="create-btn" onclick="olusturSoru()">Soru Oluştur</button>
+    </div>
+
+    <button id="bg-btn" onclick="toggleBgPanel()">Arka Plan Rengi</button>
+
+    <div id="bg-panel">
+        <button class="color-btn" style="background-color: #e6f9ff;" onclick="changeBackgroundColor('#e6f9ff')"></button>
+        <button class="color-btn" style="background-color: #ffe6f0;" onclick="changeBackgroundColor('#ffe6f0')"></button>
+        <button class="color-btn" style="background-color: #fef6e4;" onclick="changeBackgroundColor('#fef6e4')"></button>
+        <button class="color-btn" style="background-color: #f1f1f1;" onclick="changeBackgroundColor('#f1f1f1')"></button>
+        <button class="color-btn" style="background-color: #fffbe7;" onclick="changeBackgroundColor('#fffbe7')"></button>
+        <button class="color-btn" style="background-color: #e9f9f2;" onclick="changeBackgroundColor('#e9f9f2')"></button>
+    </div>
+
+    <div id="soru-container">
+        <div class="soru-box" id="soru"></div>
+    </div>
+</div>
+
+<script>
+    const sorular = {
+        genel: [
+            { soru: "Türkiye'nin başkenti neresidir?", zorluk: "kolay", odul: "2 adım ileri", ceza: "1 adım geri" },
+            { soru: "İstanbul Boğazı hangi iki denizi birbirine bağlar?", zorluk: "orta", odul: "3 adım ileri", ceza: "2 adım geri" },
+            { soru: "UNESCO tarafından koruma altına alınan ilk Türk yapısı hangisidir?", zorluk: "zor", odul: "4 adım ileri", ceza: "3 adım geri" }
+        ],
+        problem: [
+            { soru: "Bir otobüste 40 kişi vardır. 15 kişi indi, 7 kişi bindi. Şu an otobüste kaç kişi var?", zorluk: "kolay", odul: "2 adım ileri", ceza: "1 adım geri" },
+            { soru: "Bir kalem 3 TL, bir defter 7 TL. 2 kalem ve 3 defter kaç TL eder?", zorluk: "orta", odul: "3 adım ileri", ceza: "2 adım geri" },
+            { soru: "Ali'nin 3 kardeşi var. Her kardeşin 2 kalemi var. Toplam kaç kalem vardır?", zorluk: "zor", odul: "4 adım ileri", ceza: "3 adım geri" }
+        ]
+    };
+
+    function olusturSoru() {
+        const secim = document.querySelector('input[name="tur"]:checked');
+        if (!secim) {
+            alert("Lütfen bir soru türü seçin!");
+            return;
+        }
+        const tur = secim.value;
+        const liste = sorular[tur];
+        const secilen = liste[Math.floor(Math.random() * liste.length)];
+
+        document.getElementById("soru").innerHTML = `
+            <div><strong>Soru:</strong> ${secilen.soru}</div>
+            <div class="zorluk ${secilen.zorluk}">Zorluk: ${secilen.zorluk.charAt(0).toUpperCase() + secilen.zorluk.slice(1)}</div>
+            <div class="odul">Ödül: ${secilen.odul}</div>
+            <div class="ceza">Ceza: ${secilen.ceza}</div>
+        `;
+        document.getElementById("soru-container").style.display = "block";
+    }
+
+    function toggleBgPanel() {
+        const panel = document.getElementById("bg-panel");
+        panel.style.display = panel.style.display === "flex" ? "none" : "flex";
+    }
+
+    function changeBackgroundColor(color) {
+        document.body.style.backgroundColor = color;
+        localStorage.setItem("arkaPlanRengi", color);
+    }
+
+    window.addEventListener("load", () => {
+        const kayitliRenk = localStorage.getItem("arkaPlanRengi");
+        if (kayitliRenk) {
+            document.body.style.backgroundColor = kayitliRenk;
+        }
+    });
+</script>
+</body>
+</html>
